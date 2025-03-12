@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2 class="mb-4">Patient Records: {{ patient.username }}</h2>
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Record Type</th>
+                                <th>Title</th>
+                                <th>Content</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in records %}
+                            <tr>
+                                <td>{{ record.date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ record.record_type|title }}</td>
+                                <td>{{ record.title }}</td>
+                                <td>{{ record.content[:100] }}...</td>
+                                <td>
+                                    {% if record.file_path %}
+                                    <a href="{{ url_for('static', filename=record.file_path) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       target="_blank">
+                                        <i data-feather="file"></i> View Report
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

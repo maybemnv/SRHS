@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2 class="mb-4">My Patients</h2>
+        <div class="row">
+            {% for patient in patients %}
+            <div class="col-md-6">
+                <div class="card record-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ patient.username }}</h5>
+                        <p class="card-text">
+                            <i data-feather="mail"></i> {{ patient.email }}
+                        </p>
+                        <div class="d-grid">
+                            <a href="{{ url_for('view_patient_records', patient_id=patient.id) }}" class="btn btn-outline-primary">View Records</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stats-container">
+            <h4>Patient Statistics</h4>
+            <canvas id="recordTypesChart"></canvas>
+        </div>
+        <div class="stats-container">
+            <h4>Activity Timeline</h4>
+            <canvas id="recordsTimelineChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}

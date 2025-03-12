@@ -1,0 +1,71 @@
+:root {
+    --medical-blue: #005EB8;
+    --success-green: #28A745;
+    --warning-yellow: #FFC107;
+    --bg-light-grey: #F8F9FA;
+    --text-dark-grey: #212529;
+}
+
+body {
+    font-family: 'SF Pro Display', 'Inter', -apple-system, sans-serif;
+    background-color: var(--bg-light-grey);
+    color: var(--text-dark-grey);
+}
+
+.navbar {
+    background-color: var(--medical-blue);
+}
+
+.navbar-brand, .nav-link {
+    color: white !important;
+}
+
+.btn-primary {
+    background-color: var(--medical-blue);
+    border-color: var(--medical-blue);
+}
+
+.btn-success {
+    background-color: var(--success-green);
+    border-color: var(--success-green);
+}
+
+.alert {
+    border-radius: 0;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.form-control:focus {
+    border-color: var(--medical-blue);
+    box-shadow: 0 0 0 0.2rem rgba(0,94,184,0.25);
+}
+
+.record-card {
+    margin-bottom: 1rem;
+    transition: transform 0.2s;
+}
+
+.record-card:hover {
+    transform: translateY(-2px);
+}
+
+.stats-container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 10px;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+}
