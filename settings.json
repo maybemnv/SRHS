@@ -1,0 +1,13 @@
+{
+    "python.defaultInterpreterPath": "./venv/bin/python",
+    "python.terminal.activateEnvironment": true,
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "black",
+    "files.associations": {
+        "*.html": "html"
+    },
+    "emmet.includeLanguages": {
+        "html": "html"
+    }
+}

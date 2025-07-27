@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Grant Doctor Access{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-md me-2"></i>Grant Doctor Access
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Grant Medical Report Access:</strong> Enter your doctor's email address to allow them to view all your medical reports.
+                    </div>
+                    
+                    <form method="POST">
+                        <div class="mb-4">
+                            <label for="doctor_email" class="form-label fw-semibold">Doctor's Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <input type="email" class="form-control" id="doctor_email" name="doctor_email" 
+                                       placeholder="doctor@hospital.com" required>
+                            </div>
+                            <div class="form-text">
+                                Enter the email address your doctor used to register in the system
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Privacy Notice:</strong> Once granted, the doctor will have access to ALL your current and future medical reports until access is revoked.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-key me-2"></i>Grant Access
+                            </button>
+                            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Access Management Info -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Access Control Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="feature-item">
+                                <i class="fas fa-user-check text-success me-2"></i>
+                                <strong>What the doctor can see:</strong>
+                                <ul class="mt-2 mb-0">
+                                    <li>All your medical reports</li>
+                                    <li>Disease information</li>
+                                    <li>Report descriptions</li>
+                                    <li>Upload dates</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="feature-item">
+                                <i class="fas fa-user-times text-warning me-2"></i>
+                                <strong>What the doctor cannot see:</strong>
+                                <ul class="mt-2 mb-0">
+                                    <li>Your personal login details</li>
+                                    <li>Reports from other patients</li>
+                                    <li>Your browsing activity</li>
+                                    <li>Contact information beyond email</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="fas fa-lock me-2"></i>
+                        <strong>Security:</strong> All data is encrypted and only accessible through secure authentication. You maintain full control over your medical information.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- How it Works -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-question-circle me-2"></i>How It Works
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker">1</div>
+                            <div class="timeline-content">
+                                <strong>Enter Doctor's Email</strong>
+                                <p class="text-muted mb-0">Make sure your doctor is registered in the system with this email</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">2</div>
+                            <div class="timeline-content">
+                                <strong>Access Granted</strong>
+                                <p class="text-muted mb-0">Doctor immediately gains access to view all your reports</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-marker">3</div>
+                            <div class="timeline-content">
+                                <strong>Ongoing Access</strong>
+                                <p class="text-muted mb-0">Doctor can view current and future reports until access is revoked</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const emailInput = document.getElementById('doctor_email');
+    const email = emailInput.value.trim();
+    
+    if (!email) {
+        e.preventDefault();
+        alert('Please enter the doctor\'s email address.');
+        return;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address.');
+        return;
+    }
+    
+    // Confirmation dialog
+    if (!confirm(`Are you sure you want to grant access to ${email}?\n\nThis doctor will be able to view all your medical reports.`)) {
+        e.preventDefault();
+    }
+});
+</script>
+{% endblock %}

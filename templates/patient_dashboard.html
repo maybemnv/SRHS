@@ -1,0 +1,323 @@
+{% extends "base.html" %}
+
+{% block title %}Patient Dashboard - Medical Reports{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Dashboard Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <div class="dashboard-header">
+                <h1 class="fw-bold text-primary">
+                    <i class="fas fa-user-injured me-2"></i>Patient Dashboard
+                </h1>
+                <p class="text-muted">Welcome back, {{ current_user.full_name }}!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card action-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-upload text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4>Upload New Report</h4>
+                    <p class="text-muted">Add a new medical report to your records</p>
+                    <a href="{{ url_for('upload_report') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Upload Report
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <div class="card action-card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-md text-primary mb-3" style="font-size: 2.5rem;"></i>
+                    <h4>Grant Doctor Access</h4>
+                    <p class="text-muted">Allow a doctor to view your medical reports</p>
+                    <a href="{{ url_for('grant_access') }}" class="btn btn-primary">
+                        <i class="fas fa-key me-1"></i>Grant Access
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold text-primary">{{ reports|length }}</h3>
+                            <p class="text-muted mb-0">Total Reports</p>
+                        </div>
+                        <i class="fas fa-file-medical text-primary" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold text-primary">{{ granted_accesses|length }}</h3>
+                            <p class="text-muted mb-0">Doctors with Access</p>
+                        </div>
+                        <i class="fas fa-users text-primary" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold text-primary">{{ reports|selectattr('upload_date')|list|length }}</h3>
+                            <p class="text-muted mb-0">This Month</p>
+                        </div>
+                        <i class="fas fa-calendar text-primary" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card stat-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h3 class="fw-bold text-primary">{{ reports|map(attribute='disease_name')|unique|list|length }}</h3>
+                            <p class="text-muted mb-0">Unique Diseases</p>
+                        </div>
+                        <i class="fas fa-heartbeat text-primary" style="font-size: 2rem; opacity: 0.7;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Granted Doctors -->
+    {% if granted_accesses %}
+    <div class="row mb-4">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-md me-2"></i>Doctors with Access
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for access, doctor in granted_accesses %}
+                        <div class="col-md-6 mb-3">
+                            <div class="doctor-card">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <div class="doctor-avatar me-3">
+                                            <i class="fas fa-user-md"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1 fw-semibold">Dr. {{ doctor.full_name }}</h6>
+                                            <small class="text-muted">{{ doctor.email }}</small>
+                                            <br>
+                                            <small class="text-muted">Access granted: {{ access.granted_date.strftime('%B %d, %Y') }}</small>
+                                        </div>
+                                    </div>
+                                    <div class="access-actions">
+                                        <span class="access-status active">
+                                            <i class="fas fa-check-circle me-1"></i>Active
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                onclick="showRevokeConfirmation(this, {{ access.id }}, '{{ doctor.full_name }}')"
+                                                title="Revoke Access">
+                                            <i class="fas fa-user-times"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Revoke Confirmation Overlay -->
+                                <div class="revoke-confirmation" id="confirm-{{ access.id }}">
+                                    <div class="text-center">
+                                        <i class="fas fa-exclamation-triangle mb-2" style="font-size: 2rem;"></i>
+                                        <h6>Revoke Access?</h6>
+                                        <p class="mb-0">Dr. {{ doctor.full_name }} will lose access to all your reports</p>
+                                        <div class="confirm-buttons">
+                                            <button class="btn btn-light btn-sm" onclick="hideRevokeConfirmation({{ access.id }})">
+                                                <i class="fas fa-times me-1"></i>Cancel
+                                            </button>
+                                            <button class="btn btn-danger btn-sm" onclick="confirmRevoke({{ access.id }})">
+                                                <i class="fas fa-check me-1"></i>Revoke
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Medical Reports -->
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-file-medical me-2"></i>My Medical Reports
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if reports %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Disease</th>
+                                        <th>Description</th>
+                                        <th>File</th>
+                                        <th>Upload Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for report in reports %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge bg-light text-dark">{{ report.disease_name }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="report-description">
+                                                {{ report.description[:100] }}{% if report.description|length > 100 %}...{% endif %}
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="file-info">
+                                                <i class="fas fa-file-{{ 'pdf' if report.file_type == 'pdf' else 'image' }} me-1"></i>
+                                                {{ report.file_name }}
+                                            </div>
+                                        </td>
+                                        <td>{{ report.upload_date.strftime('%m/%d/%Y') }}</td>
+                                        <td>
+                                            <a href="{{ url_for('download_file', report_id=report.id) }}" 
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-download me-1"></i>Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="empty-state text-center py-5">
+                            <i class="fas fa-file-medical text-muted mb-3" style="font-size: 4rem; opacity: 0.3;"></i>
+                            <h4 class="text-muted">No Medical Reports</h4>
+                            <p class="text-muted">You haven't uploaded any medical reports yet.</p>
+                            <a href="{{ url_for('upload_report') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Upload Your First Report
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Show revoke confirmation overlay
+function showRevokeConfirmation(button, accessId, doctorName) {
+    const confirmationDiv = document.getElementById(`confirm-${accessId}`);
+    const doctorCard = button.closest('.doctor-card');
+    
+    // Add subtle animation
+    confirmationDiv.style.display = 'flex';
+    confirmationDiv.style.opacity = '0';
+    confirmationDiv.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+        confirmationDiv.style.transition = 'all 0.3s ease';
+        confirmationDiv.style.opacity = '1';
+        confirmationDiv.style.transform = 'scale(1)';
+        confirmationDiv.classList.add('show');
+    }, 10);
+}
+
+// Hide revoke confirmation overlay
+function hideRevokeConfirmation(accessId) {
+    const confirmationDiv = document.getElementById(`confirm-${accessId}`);
+    
+    confirmationDiv.style.transition = 'all 0.3s ease';
+    confirmationDiv.style.opacity = '0';
+    confirmationDiv.style.transform = 'scale(0.9)';
+    
+    setTimeout(() => {
+        confirmationDiv.classList.remove('show');
+        confirmationDiv.style.display = 'none';
+    }, 300);
+}
+
+// Confirm revoke action
+function confirmRevoke(accessId) {
+    // Show loading state
+    const confirmButton = document.querySelector(`#confirm-${accessId} .btn-danger`);
+    const originalText = confirmButton.innerHTML;
+    confirmButton.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Revoking...';
+    confirmButton.disabled = true;
+    
+    // Create and submit form
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/revoke_access/${accessId}`;
+    
+    // Add CSRF token if available
+    const csrfToken = document.querySelector('meta[name=csrf-token]');
+    if (csrfToken) {
+        const tokenField = document.createElement('input');
+        tokenField.type = 'hidden';
+        tokenField.name = 'csrf_token';
+        tokenField.value = csrfToken.getAttribute('content');
+        form.appendChild(tokenField);
+    }
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+// Add confirmation styling and animations
+document.addEventListener('DOMContentLoaded', function() {
+    // Add hover effects to revoke buttons
+    document.querySelectorAll('.btn-outline-danger').forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'scale(1.1)';
+            this.style.transition = 'transform 0.2s ease';
+        });
+        
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'scale(1)';
+        });
+    });
+    
+    // Add fade-in animation to doctor cards
+    document.querySelectorAll('.doctor-card').forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

@@ -1,30 +1,143 @@
 {% extends "base.html" %}
 
+{% block title %}Login - Medical Report Management{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Sign In</h2>
-                <form method="POST" action="{{ url_for('login') }}">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control") }}
+<div class="login-page">
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left side - Branding -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center bg-gradient-primary">
+                <div class="text-center text-white p-5">
+                    <div class="login-brand mb-4">
+                        <i class="fas fa-heartbeat" style="font-size: 4rem; margin-bottom: 1rem;"></i>
+                        <h1 class="display-4 fw-bold">MedReport</h1>
+                        <p class="lead">Secure Medical Report Management</p>
                     </div>
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
+                    <div class="login-features">
+                        <div class="feature-item mb-3">
+                            <i class="fas fa-shield-alt me-3"></i>
+                            <span>Bank-level Security</span>
+                        </div>
+                        <div class="feature-item mb-3">
+                            <i class="fas fa-users me-3"></i>
+                            <span>Doctor-Patient Access Control</span>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-chart-bar me-3"></i>
+                            <span>Advanced Analytics</span>
+                        </div>
                     </div>
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </div>
+            
+            <!-- Right side - Login form -->
+            <div class="col-lg-6 d-flex align-items-center justify-content-center">
+                <div class="login-form-container">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <div class="login-avatar mb-3">
+                                    <i class="fas fa-user-circle text-primary"></i>
+                                </div>
+                                <h2 class="fw-bold text-primary">Welcome Back</h2>
+                                <p class="text-muted">Sign in to access your secure medical dashboard</p>
+                            </div>
+                    
+                            <form method="POST" id="loginForm">
+                                <div class="mb-4">
+                                    <label for="username" class="form-label fw-semibold">Username</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-user text-primary"></i>
+                                        </span>
+                                        <input type="text" class="form-control" id="username" name="username" 
+                                               placeholder="Enter your username" required autocomplete="username">
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="password" class="form-label fw-semibold">Password</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-lock text-primary"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="password" name="password" 
+                                               placeholder="Enter your password" required autocomplete="current-password">
+                                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="rememberMe">
+                                        <label class="form-check-label" for="rememberMe">
+                                            Remember me
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" id="loginBtn">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In Securely
+                                </button>
+                            </form>
+                            
+                            <div class="text-center">
+                                <p class="mb-2">Don't have an account? 
+                                    <a href="{{ url_for('register') }}" class="text-primary text-decoration-none fw-semibold">
+                                        Create Account
+                                    </a>
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    Your data is protected with industry-standard encryption
+                                </small>
+                            </div>
+                        </div>
                     </div>
-                </form>
-                <div class="text-center mt-3">
-                    <p>New user? <a href="{{ url_for('register') }}">Register here</a></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toggle password visibility
+document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Form submission with loading state
+document.getElementById('loginForm').addEventListener('submit', function() {
+    const submitBtn = document.getElementById('loginBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Signing In...';
+    submitBtn.disabled = true;
+});
+
+// Input focus effects
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.classList.add('input-focus');
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('input-focus');
+    });
+});
+</script>
 {% endblock %}

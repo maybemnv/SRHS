@@ -1,42 +1,263 @@
 {% extends "base.html" %}
 
+{% block title %}Register - Medical Report Management{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-body">
-                <h2 class="card-title text-center mb-4">Register</h2>
-                <form method="POST" action="{{ url_for('register') }}">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                        {{ form.username.label(class="form-label") }}
-                        {{ form.username(class="form-control") }}
+<div class="register-page">
+    <div class="container-fluid">
+        <div class="row min-vh-100">
+            <!-- Left side - Registration form -->
+            <div class="col-lg-7 d-flex align-items-center justify-content-center">
+                <div class="register-form-container w-100" style="max-width: 600px;">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <div class="text-center mb-4">
+                                <div class="register-avatar mb-3">
+                                    <i class="fas fa-user-plus text-primary"></i>
+                                </div>
+                                <h2 class="fw-bold text-primary">Create Your Account</h2>
+                                <p class="text-muted">Join thousands of users in secure medical data management</p>
+                            </div>
+                    
+                            <form method="POST" id="registerForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-4">
+                                        <label for="full_name" class="form-label fw-semibold">Full Name</label>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text bg-light">
+                                                <i class="fas fa-id-card text-primary"></i>
+                                            </span>
+                                            <input type="text" class="form-control" id="full_name" name="full_name" 
+                                                   placeholder="Your full name" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6 mb-4">
+                                        <label for="username" class="form-label fw-semibold">Username</label>
+                                        <div class="input-group input-group-lg">
+                                            <span class="input-group-text bg-light">
+                                                <i class="fas fa-user text-primary"></i>
+                                            </span>
+                                            <input type="text" class="form-control" id="username" name="username" 
+                                                   placeholder="Choose a username" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-envelope text-primary"></i>
+                                        </span>
+                                        <input type="email" class="form-control" id="email" name="email" 
+                                               placeholder="your.email@example.com" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="password" class="form-label fw-semibold">Password</label>
+                                    <div class="input-group input-group-lg">
+                                        <span class="input-group-text bg-light">
+                                            <i class="fas fa-lock text-primary"></i>
+                                        </span>
+                                        <input type="password" class="form-control" id="password" name="password" 
+                                               placeholder="Create a secure password" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleRegPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                    <div class="password-strength mt-2">
+                                        <div class="progress" style="height: 4px;">
+                                            <div class="progress-bar" id="passwordStrength" style="width: 0%"></div>
+                                        </div>
+                                        <small class="text-muted" id="passwordHint">Password must be at least 6 characters</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Account Type</label>
+                                    <div class="row g-3">
+                                        <div class="col-6">
+                                            <div class="role-card">
+                                                <input class="form-check-input" type="radio" name="role" id="patient" value="patient" required>
+                                                <label class="form-check-label w-100" for="patient">
+                                                    <div class="role-icon">
+                                                        <i class="fas fa-user-injured"></i>
+                                                    </div>
+                                                    <h6 class="fw-bold">Patient</h6>
+                                                    <small class="text-muted">Upload and manage medical reports</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="role-card">
+                                                <input class="form-check-input" type="radio" name="role" id="doctor" value="doctor" required>
+                                                <label class="form-check-label w-100" for="doctor">
+                                                    <div class="role-icon">
+                                                        <i class="fas fa-user-md"></i>
+                                                    </div>
+                                                    <h6 class="fw-bold">Doctor</h6>
+                                                    <small class="text-muted">Review and analyze patient data</small>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                        <label class="form-check-label" for="agreeTerms">
+                                            I agree to the <a href="#" class="text-primary">Terms of Service</a> and 
+                                            <a href="#" class="text-primary">Privacy Policy</a>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary btn-lg w-100 mb-3" id="registerBtn">
+                                    <i class="fas fa-user-plus me-2"></i>Create Secure Account
+                                </button>
+                            </form>
+                            
+                            <div class="text-center">
+                                <p class="mb-2">Already have an account? 
+                                    <a href="{{ url_for('login') }}" class="text-primary text-decoration-none fw-semibold">
+                                        Sign In
+                                    </a>
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    HIPAA compliant and encrypted
+                                </small>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        {{ form.email.label(class="form-label") }}
-                        {{ form.email(class="form-control") }}
+                </div>
+            </div>
+            
+            <!-- Right side - Features -->
+            <div class="col-lg-5 d-flex align-items-center justify-content-center bg-gradient-primary">
+                <div class="text-center text-white p-5">
+                    <div class="register-features">
+                        <h3 class="fw-bold mb-4">Why Choose MedReport?</h3>
+                        
+                        <div class="feature-highlight mb-4">
+                            <div class="feature-number">1</div>
+                            <div class="feature-content">
+                                <h5>Secure Upload</h5>
+                                <p>Upload medical reports with bank-level encryption</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-highlight mb-4">
+                            <div class="feature-number">2</div>
+                            <div class="feature-content">
+                                <h5>Access Control</h5>
+                                <p>You decide which doctors can view your reports</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-highlight mb-4">
+                            <div class="feature-number">3</div>
+                            <div class="feature-content">
+                                <h5>AI Analytics</h5>
+                                <p>Advanced insights and intelligent search capabilities</p>
+                            </div>
+                        </div>
+                        
+                        <div class="feature-highlight">
+                            <div class="feature-number">4</div>
+                            <div class="feature-content">
+                                <h5>24/7 Access</h5>
+                                <p>Access your medical data anytime, anywhere</p>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        {{ form.password.label(class="form-label") }}
-                        {{ form.password(class="form-control") }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.password2.label(class="form-label") }}
-                        {{ form.password2(class="form-control") }}
-                    </div>
-                    <div class="mb-3">
-                        {{ form.role.label(class="form-label") }}
-                        {{ form.role(class="form-select") }}
-                    </div>
-                    <div class="d-grid">
-                        {{ form.submit(class="btn btn-primary") }}
-                    </div>
-                </form>
-                <div class="text-center mt-3">
-                    <p>Already have an account? <a href="{{ url_for('login') }}">Login here</a></p>
                 </div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toggle password visibility
+document.getElementById('toggleRegPassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = this.querySelector('i');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+});
+
+// Password strength checker
+document.getElementById('password').addEventListener('input', function() {
+    const password = this.value;
+    const strengthBar = document.getElementById('passwordStrength');
+    const hintText = document.getElementById('passwordHint');
+    
+    let strength = 0;
+    let hint = '';
+    
+    if (password.length >= 6) strength += 25;
+    if (password.match(/[a-z]/)) strength += 25;
+    if (password.match(/[A-Z]/)) strength += 25;
+    if (password.match(/[0-9]/) || password.match(/[^a-zA-Z0-9]/)) strength += 25;
+    
+    strengthBar.style.width = strength + '%';
+    
+    if (strength <= 25) {
+        strengthBar.className = 'progress-bar bg-danger';
+        hint = 'Weak password';
+    } else if (strength <= 50) {
+        strengthBar.className = 'progress-bar bg-warning';
+        hint = 'Fair password';
+    } else if (strength <= 75) {
+        strengthBar.className = 'progress-bar bg-info';
+        hint = 'Good password';
+    } else {
+        strengthBar.className = 'progress-bar bg-success';
+        hint = 'Strong password';
+    }
+    
+    hintText.textContent = hint;
+});
+
+// Role selection animation
+document.querySelectorAll('input[name="role"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        this.closest('.role-card').classList.add('selected');
+    });
+});
+
+// Form submission with loading state
+document.getElementById('registerForm').addEventListener('submit', function() {
+    const submitBtn = document.getElementById('registerBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creating Account...';
+    submitBtn.disabled = true;
+});
+
+// Input focus effects
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.classList.add('input-focus');
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('input-focus');
+    });
+});
+</script>
 {% endblock %}

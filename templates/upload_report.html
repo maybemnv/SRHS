@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Medical Report{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="fas fa-upload me-2"></i>Upload Medical Report
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label for="disease_name" class="form-label fw-semibold">Disease/Condition Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-heartbeat"></i>
+                                </span>
+                                <input type="text" class="form-control" id="disease_name" name="disease_name" 
+                                       placeholder="e.g., Diabetes, Hypertension, Cancer" required>
+                            </div>
+                            <div class="form-text">Enter the main disease or medical condition</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="description" class="form-label fw-semibold">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Describe the medical condition, symptoms, diagnosis details, treatment plan, etc." required></textarea>
+                            <div class="form-text">Provide detailed information about the medical report</div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="file" class="form-label fw-semibold">Medical Report File</label>
+                            <div class="file-upload-area">
+                                <input type="file" class="form-control" id="file" name="file" 
+                                       accept=".pdf,.png,.jpg,.jpeg,.gif,.doc,.docx" required>
+                                <div class="form-text">
+                                    <i class="fas fa-info-circle me-1"></i>
+                                    Supported formats: PDF, DOC, DOCX, PNG, JPG, GIF (Max 16MB)
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-shield-alt me-2"></i>
+                            <strong>Privacy Notice:</strong> Your medical report will be securely stored and only accessible to doctors you specifically grant access to.
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-cloud-upload-alt me-2"></i>Upload Report
+                            </button>
+                            <a href="{{ url_for('patient_dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Upload Guidelines -->
+            <div class="card mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Upload Guidelines
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Ensure all personal information is clearly visible
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Use high-quality scans or photos for clarity
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Include complete test results and doctor's notes
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Provide detailed description for better understanding
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Keep file size under 16MB for faster uploads
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// File upload preview and validation
+document.getElementById('file').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        // Validate file size (16MB limit)
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB');
+            e.target.value = '';
+            return;
+        }
+        
+        // Show file info
+        const fileInfo = document.createElement('div');
+        fileInfo.className = 'alert alert-success mt-2';
+        fileInfo.innerHTML = `
+            <i class="fas fa-file me-2"></i>
+            <strong>Selected:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)
+        `;
+        
+        // Remove existing file info
+        const existingInfo = e.target.parentElement.querySelector('.alert');
+        if (existingInfo) {
+            existingInfo.remove();
+        }
+        
+        e.target.parentElement.appendChild(fileInfo);
+    }
+});
+
+// Form validation
+document.querySelector('form').addEventListener('submit', function(e) {
+    const diseaseInput = document.getElementById('disease_name');
+    const descriptionInput = document.getElementById('description');
+    const fileInput = document.getElementById('file');
+    
+    if (!diseaseInput.value.trim() || !descriptionInput.value.trim() || !fileInput.files[0]) {
+        e.preventDefault();
+        alert('Please fill in all required fields and select a file.');
+    }
+});
+</script>
+{% endblock %}

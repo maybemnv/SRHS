@@ -19,23 +19,6 @@ PyMuPDF
 pytesseract # OCR capabilities
 python-docx # For processing .docx files
 
-# AI & Machine Learning
-scikit-learn
-tensorflow  # For deep learning models
-transformers  # For NLP tasks
-nltk  # Natural language processing
-spacy # Advanced NLP
-
-# Medical AI Integration
-medspacy  # Clinical NLP package based on spaCy
-scispacy  # Scientific/biomedical text processing
-negspacy # Negation detection for medical texts
-
-# Data Visualization
-matplotlib
-seaborn
-plotly
-
 # Utility
 python-dotenv
 requests
@@ -45,13 +28,3 @@ numpy
 # Testing
 pytest
 coverage
-
-# Development Tools
-black
-flake8
-mypy
-isort
-
-# Deployment
-gunicorn
-psycopg2-binary
