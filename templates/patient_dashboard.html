@@ -229,6 +229,16 @@
             </div>
         </div>
     </div>
+
+<div id="patient-chatbot-container" style="margin-top:2em;">
+  <h3>Ask the Patient Chatbot</h3>
+  <div id="patient-chatbot-messages" style="background:#f8f8f8; padding:1em; min-height:100px; border-radius:8px; margin-bottom:1em;"></div>
+  <form id="patient-chatbot-form">
+    <input type="text" id="patient-chatbot-input" placeholder="Type your question..." style="width:70%;" required>
+    <button type="submit">Send</button>
+  </form>
+</div>
+<script src="{{ url_for('static', filename='js/patient_chatbot.js') }}"></script>
 </div>
 {% endblock %}
 

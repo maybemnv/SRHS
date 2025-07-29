@@ -1,10 +1,16 @@
 import re
 from typing import List, Dict, Any
+import os
+import google.generativeai as genai
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def process_chatbot_query(query: str, patients_data: List[Dict[str, Any]]) -> str:
     """
     Process chatbot queries and return filtered patient information.
-    Basic keyword-based NLP implementation.
+    Basic keyword-based NLP implementation, with Gemini fallback for open-ended queries.
     """
     query = query.lower().strip()
     
@@ -32,7 +38,14 @@ def process_chatbot_query(query: str, patients_data: List[Dict[str, Any]]) -> st
     elif 'help' in query or 'commands' in query:
         return get_help_message()
     else:
-        return handle_general_query(query, patients_data, patient_id, disease_keywords)
+        # Try the old fallback first
+        fallback = handle_general_query(query, patients_data, patient_id, disease_keywords)
+        # If fallback is generic, use Gemini
+        if fallback.startswith("I can help you"):
+            llm_response = call_groq_llama3(query)
+            return llm_response
+        else:
+            return fallback
 
 def handle_search_query(query: str, patients_data: List[Dict[str, Any]], 
                        patient_id: int = None, disease_keywords: List[str] = None) -> str:
@@ -179,3 +192,90 @@ def get_help_message() -> str:
 • "List all patients"
 
 Just type your question naturally!"""
+
+
+def call_groq_llama3(prompt: str) -> str:
+    """Call Groq Cloud Llama 3-70B for generative medical chatbot answers."""
+    api_key = os.getenv('GROQ_API_KEY')
+    if not api_key:
+        return "[Error: GROQ_API_KEY not set in environment.]"
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "llama3-70b-8192",
+        "messages": [
+            {"role": "system", "content": "You are a helpful medical assistant. Always remind users to consult a real doctor for medical advice."},
+            {"role": "user", "content": prompt}
+        ],
+        "max_tokens": 512,
+        "temperature": 0.2
+    }
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        response.raise_for_status()
+        return response.json()["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        return f"[Groq LLM Error: {e}]"
+
+def process_patient_chatbot_query(query: str, patient_data: dict) -> str:
+    """
+    Process patient chatbot queries: contact doctors, request/access reports, list granted accesses, and LLM fallback.
+    """
+    query = query.lower().strip()
+    patient = patient_data['patient']
+    reports = patient_data['reports']
+    granted_accesses = patient_data['granted_accesses']
+
+    # Help/commands prompt
+    if any(word in query for word in ['help', 'commands', 'what can you do', 'options', 'examples']):
+        help_message = (
+            "🤖 Patient Chatbot Commands:\n\n"
+            "📄 Medical Records:\n"
+            "• 'Show my reports' - List your uploaded medical reports\n"
+            "• 'Which doctors have access?' - List doctors with access to your records\n"
+            "• 'Contact my doctor' - See which doctors you can contact\n"
+            "\n💡 Examples:\n"
+            "• 'Show my reports'\n"
+            "  → You have X medical reports. • Disease1 (2024-01-01) ...\n"
+            "• 'Which doctors have access?'\n"
+            "  → Doctors with access to your records: Dr. Smith (smith@email.com) ...\n"
+            "• 'Contact my doctor'\n"
+            "  → You can contact your doctors: Dr. Smith. (Messaging feature coming soon.)\n"
+            "\nJust type your question naturally!"
+        )
+        return help_message
+
+    if any(word in query for word in ['contact doctor', 'message doctor', 'talk to doctor', 'reach doctor']):
+        # Placeholder for contacting doctor
+        if granted_accesses:
+            doctor_names = ', '.join([doctor.full_name for _, doctor in granted_accesses])
+            return f"You can contact your doctors: {doctor_names}. (Messaging feature coming soon.)"
+        else:
+            return "You have not granted access to any doctors yet."
+
+    if any(word in query for word in ['my reports', 'my records', 'show reports', 'show records', 'access reports', 'access records']):
+        if not reports:
+            return "You have no medical reports uploaded yet."
+        result = f"You have {len(reports)} medical reports.\n"
+        for r in reports[:5]:
+            result += f"• {r.disease_name} ({r.upload_date.strftime('%Y-%m-%d')})\n"
+        if len(reports) > 5:
+            result += f"...and {len(reports) - 5} more."
+        return result
+
+    if any(word in query for word in ['which doctors', 'who has access', 'granted access', 'doctor access']):
+        if not granted_accesses:
+            return "No doctors currently have access to your records."
+        result = "Doctors with access to your records:\n"
+        for _, doctor in granted_accesses:
+            result += f"• Dr. {doctor.full_name} ({doctor.email})\n"
+        return result
+
+    # LLM fallback for open-ended queries
+    llm_response = call_groq_llama3(
+        f"[Patient prompt] {query}\n(You are a helpful assistant for patients. Always remind users to consult their doctor for medical advice.)"
+    )
+    return llm_response

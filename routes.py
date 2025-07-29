@@ -388,3 +388,33 @@ def analytics_api():
     except Exception as e:
         current_app.logger.error(f"Analytics error: {e}")
         return jsonify({'error': 'Failed to get analytics data'}), 500
+
+@app.route('/patient_chatbot', methods=['POST'])
+@login_required
+def patient_chatbot():
+    if current_user.role != 'patient':
+        return jsonify({'error': 'Access denied'}), 403
+
+    query = request.json.get('query', '').strip()
+    if not query:
+        return jsonify({'error': 'Query is required'}), 400
+
+    try:
+        # Get patient's reports
+        reports = MedicalReport.query.filter_by(patient_id=current_user.id).all()
+        # Get granted doctor accesses
+        granted_accesses = db.session.query(DoctorAccess, User).join(
+            User, DoctorAccess.doctor_id == User.id
+        ).filter(DoctorAccess.patient_id == current_user.id).all()
+        # Prepare data for chatbot logic
+        patient_data = {
+            'patient': current_user,
+            'reports': reports,
+            'granted_accesses': granted_accesses
+        }
+        from chatbot import process_patient_chatbot_query
+        response = process_patient_chatbot_query(query, patient_data)
+        return jsonify({'response': response})
+    except Exception as e:
+        current_app.logger.error(f"Patient Chatbot error: {e}")
+        return jsonify({'error': 'Failed to process query'}), 500

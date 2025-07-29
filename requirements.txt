@@ -1,7 +1,6 @@
 
 Flask
 Werkzeug
-
 # Database
 Flask-SQLAlchemy
 sqlalchemy
