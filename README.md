@@ -15,15 +15,7 @@ A modern, secure, and user-friendly web application for managing, sharing, and a
 - **Mobile Friendly:** Responsive design for seamless use on any device.
 - **Audit Trails:** Track access and changes to sensitive data.
 - **Extensible:** Modular codebase for easy feature expansion.
-
----
-
-## Demo
-
-![Demo Screenshot](static/img/medical_illustration.svg)
-
----
-
+--
 ## Getting Started
 
 ### 1. **Clone the Repository**
