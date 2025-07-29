@@ -295,28 +295,34 @@ def download_file(report_id):
 @app.route('/chatbot', methods=['POST'])
 @login_required
 def chatbot():
-    if current_user.role != 'doctor':
-        return jsonify({'error': 'Access denied'}), 403
-    
     query = request.json.get('query', '').strip()
     if not query:
         return jsonify({'error': 'Query is required'}), 400
-    
+
     try:
-        # Get doctor's accessible patients
-        patient_accesses = db.session.query(DoctorAccess, User).join(
-            User, DoctorAccess.patient_id == User.id
-        ).filter(DoctorAccess.doctor_id == current_user.id).all()
+        data_for_chatbot = []
+        if current_user.role == 'doctor':
+            # For doctors, get all accessible patients' data
+            patient_accesses = db.session.query(DoctorAccess, User).join(
+                User, DoctorAccess.patient_id == User.id
+            ).filter(DoctorAccess.doctor_id == current_user.id).all()
+            
+            for access, patient in patient_accesses:
+                reports = MedicalReport.query.filter_by(patient_id=patient.id).all()
+                data_for_chatbot.append({
+                    'patient': patient,
+                    'reports': reports
+                })
         
-        patients_data = []
-        for access, patient in patient_accesses:
-            reports = MedicalReport.query.filter_by(patient_id=patient.id).all()
-            patients_data.append({
-                'patient': patient,
+        elif current_user.role == 'patient':
+            # For patients, get their own data
+            reports = MedicalReport.query.filter_by(patient_id=current_user.id).all()
+            data_for_chatbot.append({
+                'patient': current_user,
                 'reports': reports
             })
-        
-        response = process_chatbot_query(query, patients_data)
+
+        response = process_chatbot_query(query, data_for_chatbot, current_user.role)
         return jsonify({'response': response})
         
     except Exception as e:
@@ -389,15 +395,7 @@ def analytics_api():
         current_app.logger.error(f"Analytics error: {e}")
         return jsonify({'error': 'Failed to get analytics data'}), 500
 
-@app.route('/patient_chatbot', methods=['POST'])
-@login_required
-def patient_chatbot():
-    if current_user.role != 'patient':
-        return jsonify({'error': 'Access denied'}), 403
 
-    query = request.json.get('query', '').strip()
-    if not query:
-        return jsonify({'error': 'Query is required'}), 400
 
     try:
         # Get patient's reports

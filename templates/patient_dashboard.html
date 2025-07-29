@@ -100,8 +100,11 @@
         </div>
     </div>
 
-    <!-- Granted Doctors -->
-    {% if granted_accesses %}
+    <div class="row">
+        <!-- Main Content Column -->
+        <div class="col-lg-8">
+            <!-- Granted Doctors -->
+            {% if granted_accesses %}
     <div class="row mb-4">
         <div class="col">
             <div class="card">
@@ -160,14 +163,12 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    {% endif %}
+                </div>
+            </div>
+            {% endif %}
 
-    <!-- Medical Reports -->
-    <div class="row">
-        <div class="col">
-            <div class="card">
+            <!-- Medical Reports -->
+            <div class="card mt-4">
                 <div class="card-header bg-primary text-white">
                     <h5 class="mb-0">
                         <i class="fas fa-file-medical me-2"></i>My Medical Reports
@@ -228,21 +229,47 @@
                 </div>
             </div>
         </div>
+
+        <!-- Chatbot Column -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-robot me-2"></i>AI Medical Assistant
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="chatMessages" class="chat-messages p-3" style="height: 400px; overflow-y: auto;">
+                        <div class="chat-message bot-message">
+                            <div class="message-content">
+                                <small class="text-muted">AI Assistant</small>
+                                <p class="mb-0">Hello {{ current_user.full_name }}! I can help you with your medical records. Try asking:
+                                <br>• "Summarize my recent reports"
+                                <br>• "When was my last report for diabetes?"
+                                <br>• "Show my reports from the last month"</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input border-top">
+                        <div class="input-group">
+                            <input type="text" id="chatInput" class="form-control border-0" 
+                                   placeholder="Ask about your reports..." style="border-radius: 0;">
+                            <button class="btn btn-primary" type="button" id="sendMessage" style="border-radius: 0;">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-<div id="patient-chatbot-container" style="margin-top:2em;">
-  <h3>Ask the Patient Chatbot</h3>
-  <div id="patient-chatbot-messages" style="background:#f8f8f8; padding:1em; min-height:100px; border-radius:8px; margin-bottom:1em;"></div>
-  <form id="patient-chatbot-form">
-    <input type="text" id="patient-chatbot-input" placeholder="Type your question..." style="width:70%;" required>
-    <button type="submit">Send</button>
-  </form>
-</div>
-<script src="{{ url_for('static', filename='js/patient_chatbot.js') }}"></script>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
 <script>
 // Show revoke confirmation overlay
 function showRevokeConfirmation(button, accessId, doctorName) {

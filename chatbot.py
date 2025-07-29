@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-def process_chatbot_query(query: str, patients_data: List[Dict[str, Any]]) -> str:
+def process_chatbot_query(query: str, data: List[Dict[str, Any]], role: str) -> str:
     """
     Process chatbot queries and return filtered patient information.
     Basic keyword-based NLP implementation, with Gemini fallback for open-ended queries.
@@ -30,22 +30,33 @@ def process_chatbot_query(query: str, patients_data: List[Dict[str, Any]]) -> st
         if disease in query:
             disease_keywords.append(disease)
     
-    # Process different types of queries
-    if 'show' in query or 'find' in query or 'list' in query:
-        return handle_search_query(query, patients_data, patient_id, disease_keywords)
-    elif 'count' in query or 'how many' in query or 'total' in query:
-        return handle_count_query(query, patients_data, disease_keywords)
-    elif 'help' in query or 'commands' in query:
-        return get_help_message()
-    else:
-        # Try the old fallback first
-        fallback = handle_general_query(query, patients_data, patient_id, disease_keywords)
-        # If fallback is generic, use Gemini
-        if fallback.startswith("I can help you"):
-            llm_response = call_groq_llama3(query)
-            return llm_response
+    # Role-specific logic
+    if role == 'doctor':
+        if 'show' in query or 'find' in query or 'list' in query:
+            return handle_search_query(query, data, patient_id, disease_keywords)
+        elif 'count' in query or 'how many' in query or 'total' in query:
+            return handle_count_query(query, data, disease_keywords)
+        elif 'help' in query or 'commands' in query:
+            return get_help_message('doctor')
         else:
-            return fallback
+            return call_groq_llama3(query, role='doctor')
+    
+    elif role == 'patient':
+        if not data:
+            return "Could not retrieve your data. Please try again later."
+        
+        patient_data = data[0]  # Patient data is the first element
+        
+        if any(word in query for word in ['help', 'commands', 'options']):
+            return get_help_message('patient')
+        elif any(word in query for word in ['my reports', 'my records']):
+            return handle_patient_reports_query(patient_data)
+        elif any(word in query for word in ['which doctors', 'who has access']):
+            return handle_patient_access_query(patient_data)
+        else:
+            return call_groq_llama3(query, role='patient')
+    
+    return "Invalid role specified."
 
 def handle_search_query(query: str, patients_data: List[Dict[str, Any]], 
                        patient_id: int = None, disease_keywords: List[str] = None) -> str:
@@ -171,30 +182,40 @@ def handle_general_query(query: str, patients_data: List[Dict[str, Any]],
            "• 'Count patients with diabetes'\n\n" \
            "What would you like to know?"
 
-def get_help_message() -> str:
+def get_help_message(role: str) -> str:
     """Return help message with available commands"""
-    return """🤖 Medical Assistant Chatbot Commands:
+    if role == 'doctor':
+        return """🤖 Medical Assistant Commands:
 
-📊 Patient Search:
-• "Show all patients" - List all accessible patients
-• "Find patient ID [number]" - Find specific patient
-• "Show patients with [disease]" - Filter by disease
+📊 **Patient Search**:
+• "Show all patients"
+• "Find patient ID [number]"
+• "Show patients with [disease]"
 
-📈 Statistics:
-• "How many patients?" - Total patient count
-• "Count patients with [disease]" - Disease-specific count
-• "Total reports" - Overall statistics
+📈 **Statistics**:
+• "How many patients?"
+• "Count patients with [disease]"
 
-💡 Examples:
+💡 **Examples**:
 • "Show patients with cancer"
-• "Find patient ID 102"
-• "How many patients with diabetes?"
-• "List all patients"
+• "Find patient ID 102"""
+    
+    elif role == 'patient':
+        return """🤖 AI Assistant Commands:
 
-Just type your question naturally!"""
+📄 **My Records**:
+• "Show my reports"
+• "Summarize my recent reports"
+
+🔑 **Access**:
+• "Which doctors have access?"
+
+💡 **Examples**:
+• "When was my last report for diabetes?"
+• "Show my reports from the last month"""
 
 
-def call_groq_llama3(prompt: str) -> str:
+def call_groq_llama3(prompt: str, role: str) -> str:
     """Call Groq Cloud Llama 3-70B for generative medical chatbot answers."""
     api_key = os.getenv('GROQ_API_KEY')
     if not api_key:
@@ -204,10 +225,16 @@ def call_groq_llama3(prompt: str) -> str:
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
+    
+    if role == 'doctor':
+        system_prompt = "You are a helpful medical assistant for a doctor. You are analyzing data from patients who have granted this doctor access. Be concise and professional. Always remind users to consult a real doctor for definitive medical advice."
+    else: # Patient
+        system_prompt = "You are a helpful AI assistant for a patient viewing their own health records. Be supportive and clear. Always strongly remind them that you are an AI and they must consult their real doctor for any medical advice."
+
     payload = {
         "model": "llama3-70b-8192",
         "messages": [
-            {"role": "system", "content": "You are a helpful medical assistant. Always remind users to consult a real doctor for medical advice."},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": prompt}
         ],
         "max_tokens": 512,
@@ -220,62 +247,24 @@ def call_groq_llama3(prompt: str) -> str:
     except Exception as e:
         return f"[Groq LLM Error: {e}]"
 
-def process_patient_chatbot_query(query: str, patient_data: dict) -> str:
-    """
-    Process patient chatbot queries: contact doctors, request/access reports, list granted accesses, and LLM fallback.
-    """
-    query = query.lower().strip()
-    patient = patient_data['patient']
-    reports = patient_data['reports']
-    granted_accesses = patient_data['granted_accesses']
+def handle_patient_reports_query(patient_data: Dict[str, Any]) -> str:
+    """Handle queries about a patient's own reports."""
+    reports = patient_data.get('reports', [])
+    if not reports:
+        return "You have no medical reports uploaded yet."
+    
+    result = f"You have {len(reports)} medical reports:\n"
+    for r in sorted(reports, key=lambda x: x.upload_date, reverse=True)[:5]:
+        result += f"• **{r.disease_name}** - {r.upload_date.strftime('%B %d, %Y')}\n"
+    
+    if len(reports) > 5:
+        result += f"...and {len(reports) - 5} more."
+        
+    return result
 
-    # Help/commands prompt
-    if any(word in query for word in ['help', 'commands', 'what can you do', 'options', 'examples']):
-        help_message = (
-            "🤖 Patient Chatbot Commands:\n\n"
-            "📄 Medical Records:\n"
-            "• 'Show my reports' - List your uploaded medical reports\n"
-            "• 'Which doctors have access?' - List doctors with access to your records\n"
-            "• 'Contact my doctor' - See which doctors you can contact\n"
-            "\n💡 Examples:\n"
-            "• 'Show my reports'\n"
-            "  → You have X medical reports. • Disease1 (2024-01-01) ...\n"
-            "• 'Which doctors have access?'\n"
-            "  → Doctors with access to your records: Dr. Smith (smith@email.com) ...\n"
-            "• 'Contact my doctor'\n"
-            "  → You can contact your doctors: Dr. Smith. (Messaging feature coming soon.)\n"
-            "\nJust type your question naturally!"
-        )
-        return help_message
-
-    if any(word in query for word in ['contact doctor', 'message doctor', 'talk to doctor', 'reach doctor']):
-        # Placeholder for contacting doctor
-        if granted_accesses:
-            doctor_names = ', '.join([doctor.full_name for _, doctor in granted_accesses])
-            return f"You can contact your doctors: {doctor_names}. (Messaging feature coming soon.)"
-        else:
-            return "You have not granted access to any doctors yet."
-
-    if any(word in query for word in ['my reports', 'my records', 'show reports', 'show records', 'access reports', 'access records']):
-        if not reports:
-            return "You have no medical reports uploaded yet."
-        result = f"You have {len(reports)} medical reports.\n"
-        for r in reports[:5]:
-            result += f"• {r.disease_name} ({r.upload_date.strftime('%Y-%m-%d')})\n"
-        if len(reports) > 5:
-            result += f"...and {len(reports) - 5} more."
-        return result
-
-    if any(word in query for word in ['which doctors', 'who has access', 'granted access', 'doctor access']):
-        if not granted_accesses:
-            return "No doctors currently have access to your records."
-        result = "Doctors with access to your records:\n"
-        for _, doctor in granted_accesses:
-            result += f"• Dr. {doctor.full_name} ({doctor.email})\n"
-        return result
-
-    # LLM fallback for open-ended queries
-    llm_response = call_groq_llama3(
-        f"[Patient prompt] {query}\n(You are a helpful assistant for patients. Always remind users to consult their doctor for medical advice.)"
-    )
-    return llm_response
+def handle_patient_access_query(patient_data: Dict[str, Any]) -> str:
+    """Handle queries about which doctors have access."""
+    # This assumes 'granted_accesses' is passed in the patient_data dict.
+    # The route currently doesn't provide this, so this is a placeholder.
+    # For now, we can't answer this question from the patient side.
+    return "I'm sorry, I can't check which doctors have access right now. You can see the list of doctors on your dashboard."
